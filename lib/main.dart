@@ -95,6 +95,11 @@ class _MyHomePageState extends State<MyHomePage> {
             Column(
               children: <Widget>[
                 Text('hi@example.com'),
+                Text('Subject $index test data'),
+                Text('Snippet of the email'),
+                OutlineButton(
+                  child: Text('Doc title'),
+                )
               ],
             ),
           ],
