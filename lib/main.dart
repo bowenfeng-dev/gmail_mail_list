@@ -93,12 +93,16 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text('$index'),
             ),
             Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text('hi@example.com'),
                 Text('Subject $index test data'),
                 Text('Snippet of the email'),
                 OutlineButton(
                   child: Text('Doc title'),
+                  onPressed: () {},
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0)),
                 )
               ],
             ),
