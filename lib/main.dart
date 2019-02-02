@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 void main() => runApp(MyApp());
 
@@ -44,18 +45,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  var _refreshController = RefreshController();
 
   @override
   Widget build(BuildContext context) {
@@ -71,15 +61,45 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: ListView.builder(
-        itemBuilder: _mailItemBuilder,
-        itemCount: 5,
+      body: SmartRefresher(
+        enablePullDown: true,
+        headerBuilder: _refresherHeaderBuilder,
+        controller: _refreshController,
+        onRefresh: _onPullToRefresh,
+        child: ListView.builder(
+          itemBuilder: _mailItemBuilder,
+          itemCount: 5,
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget _refresherHeaderBuilder(BuildContext context, int mode) {
+    return ClassicIndicator(
+      mode: mode,
+      idleText: '',
+      releaseText: '',
+      refreshingText: '',
+      completeText: '',
+      completeIcon: SizedBox(
+        width: 25.0,
+        height: 25.0,
+        child: CircularProgressIndicator(strokeWidth: 2.0),
+      ),
+      idleIcon: SizedBox(
+        width: 25.0,
+        height: 25.0,
+        child: CircularProgressIndicator(strokeWidth: 2.0),
+      ),
+      releaseIcon: SizedBox(
+        width: 25.0,
+        height: 25.0,
+        child: CircularProgressIndicator(strokeWidth: 2.0),
+      ),
     );
   }
 
@@ -108,5 +128,11 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ));
+  }
+
+  void _onPullToRefresh(bool up) {
+    print('_onPullToRefresh $up');
+    Future.delayed(Duration(milliseconds: 2000))
+        .then((_) => _refreshController.sendBack(up, RefreshStatus.completed));
   }
 }
