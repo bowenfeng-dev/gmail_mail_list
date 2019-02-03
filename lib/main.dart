@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gmail_mail_list/ThreadSummary.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 void main() => runApp(MyApp());
 
@@ -34,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
         from: "hi@example.com",
         subject: "Flutter on desktop, a real competitor to Electron",
         snippet: "Flutter desktop for real-world applications and to…",
-        attachments: ["image.jpg", "code.zip"]),
+        attachments: ["image.jpg", "code.zip", "doc.pdf"]),
     ThreadSummary(
         from: "test@flutter.io",
         subject: "Flutter Layout Cheat Sheet",
@@ -67,21 +68,31 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _mailItemBuilder(BuildContext context, int index) {
     final thread = _threads[index];
     return Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: EdgeInsets.all(8.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            CircleAvatar(
-              child: Text('$index'),
+            SizedBox(
+              width: 48.0,
+              height: 48.0,
+              child: ClipOval(
+                child: FadeInImage.memoryNetwork(
+                  placeholder: kTransparentImage,
+                  image: "https://randomuser.me/api/portraits/thumb/men/92.jpg",
+                ),
+              ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(thread.from),
-                Text(thread.subject),
-                Text(thread.snippet),
-                _attachmentButtons(thread.attachments),
-              ],
+            Padding(
+              padding: EdgeInsets.only(left: 8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(thread.from),
+                  Text(thread.subject),
+                  Text(thread.snippet),
+                  _attachmentButtons(thread.attachments),
+                ],
+              ),
             ),
           ],
         ));
@@ -125,10 +136,13 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildAttachmentButton(String attachment) {
-    return OutlineButton(
-      child: Text('Doc title'),
-      onPressed: () {},
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: OutlineButton(
+        child: Text(attachment),
+        onPressed: () {},
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+      ),
     );
   }
 }
