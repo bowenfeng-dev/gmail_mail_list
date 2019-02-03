@@ -33,11 +33,13 @@ class _MyHomePageState extends State<MyHomePage> {
   var _threads = [
     ThreadSummary(
         from: "hi@example.com",
+        avatarUrl: "https://randomuser.me/api/portraits/thumb/men/92.jpg",
         subject: "Flutter on desktop, a real competitor to Electron",
         snippet: "Flutter desktop for real-world applications and to…",
         attachments: ["image.jpg", "code.zip", "doc.pdf"]),
     ThreadSummary(
         from: "test@flutter.io",
+        avatarUrl: "https://randomuser.me/api/portraits/thumb/women/94.jpg",
         subject: "Flutter Layout Cheat Sheet",
         snippet: "Do you need simple layout samples for Flutter? …"),
   ];
@@ -72,16 +74,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(
-              width: 48.0,
-              height: 48.0,
-              child: ClipOval(
-                child: FadeInImage.memoryNetwork(
-                  placeholder: kTransparentImage,
-                  image: "https://randomuser.me/api/portraits/thumb/men/92.jpg",
-                ),
-              ),
-            ),
+            _buildAvatar(thread.avatarUrl),
             Padding(
               padding: EdgeInsets.only(left: 8.0),
               child: Column(
@@ -90,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   Text(thread.from),
                   Text(thread.subject),
                   Text(thread.snippet),
-                  _attachmentButtons(thread.attachments),
+                  _buildAttachmentButtons(thread.attachments),
                 ],
               ),
             ),
@@ -129,7 +122,20 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _attachmentButtons(List<String> attachments) {
+  SizedBox _buildAvatar(String avatarUrl) {
+    return SizedBox(
+      width: 48.0,
+      height: 48.0,
+      child: ClipOval(
+        child: FadeInImage.memoryNetwork(
+          placeholder: kTransparentImage,
+          image: avatarUrl,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAttachmentButtons(List<String> attachments) {
     return attachments == null
         ? Row()
         : Row(children: attachments.map(_buildAttachmentButton).toList());
