@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gmail_mail_list/ThreadSummary.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:random_user/models.dart';
 import 'package:transparent_image/transparent_image.dart';
+import 'package:random_user/random_user.dart';
+import 'package:flutter_lorem/flutter_lorem.dart';
 
 void main() => runApp(MyApp());
 
@@ -30,19 +33,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var _refreshController = RefreshController();
-  var _threads = [
-    ThreadSummary(
-        from: "hi@example.com",
-        avatarUrl: "https://randomuser.me/api/portraits/thumb/men/92.jpg",
-        subject: "Flutter on desktop, a real competitor to Electron",
-        snippet: "Flutter desktop for real-world applications and to…",
-        attachments: ["image.jpg", "code.zip", "doc.pdf"]),
-    ThreadSummary(
-        from: "test@flutter.io",
-        avatarUrl: "https://randomuser.me/api/portraits/thumb/women/94.jpg",
-        subject: "Flutter Layout Cheat Sheet",
-        snippet: "Do you need simple layout samples for Flutter? …"),
-  ];
+  var _threads = [];
+
+  @override
+  void didChangeDependencies() async {
+    super.didChangeDependencies();
+    RandomUser().getUsers(results: 10).then((users) {
+      setState(() {
+        _threads = users.map(_toThreadSummary).toList();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(thread.from),
+                  Text(
+                    thread.from,
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   Text(thread.subject),
                   Text(thread.snippet),
                   _buildAttachmentButtons(thread.attachments),
@@ -147,8 +151,18 @@ class _MyHomePageState extends State<MyHomePage> {
       child: OutlineButton(
         child: Text(attachment),
         onPressed: () {},
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       ),
+    );
+  }
+
+  ThreadSummary _toThreadSummary(User user) {
+    return ThreadSummary(
+      from: user.name.first[0].toUpperCase() + user.name.first.substring(1),
+      avatarUrl: user.picture.thumbnail,
+      subject: lorem(paragraphs: 1, words: 8),
+      snippet: lorem(paragraphs: 1, words: 10),
     );
   }
 }

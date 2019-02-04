@@ -23,6 +23,9 @@ dependencies:
   pull_to_refresh: ^1.1.6
   transparent_image: ^0.1.0
 
+  random_user: ^0.1.0
+  flutter_lorem: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
