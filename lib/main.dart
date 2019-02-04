@@ -76,19 +76,21 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             _buildAvatar(thread.avatarUrl),
-            Padding(
-              padding: EdgeInsets.only(left: 8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    thread.from,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(thread.subject),
-                  Text(thread.snippet),
-                  _buildAttachmentButtons(thread.attachments),
-                ],
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      thread.from,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(thread.subject, overflow: TextOverflow.ellipsis),
+                    Text(thread.snippet, overflow: TextOverflow.ellipsis),
+                    _buildAttachmentButtons(thread.attachments),
+                  ],
+                ),
               ),
             ),
           ],
