@@ -22,6 +22,24 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class DetailScreen extends StatelessWidget {
+  final ThreadSummary thread;
+
+  DetailScreen({Key key, @required this.thread}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(thread.from)),
+      body: ListView(
+        children: <Widget>[
+          Text(thread.subject),
+          Text(thread.snippet),
+        ],
+      ),
+    );
+  }
+}
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -70,31 +88,40 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _mailItemBuilder(BuildContext context, int index) {
     final thread = _threads[index];
-    return Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _buildAvatar(thread.avatarUrl),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(left: 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      thread.from,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(thread.subject, overflow: TextOverflow.ellipsis),
-                    Text(thread.snippet, overflow: TextOverflow.ellipsis),
-                    _buildAttachmentButtons(thread.attachments),
-                  ],
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailScreen(thread: thread),
+            ));
+      },
+      child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _buildAvatar(thread.avatarUrl),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        thread.from,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(thread.subject, overflow: TextOverflow.ellipsis),
+                      Text(thread.snippet, overflow: TextOverflow.ellipsis),
+                      _buildAttachmentButtons(thread.attachments),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
-        ));
+            ],
+          )),
+    );
   }
 
   void _onPullToRefresh(bool up) {
