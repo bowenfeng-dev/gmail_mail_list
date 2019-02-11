@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:gmail_mail_list/ThreadSummary.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
@@ -5,6 +8,10 @@ import 'package:random_user/models.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:random_user/random_user.dart';
 import 'package:flutter_lorem/flutter_lorem.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/gmail/v1.dart';
+import 'package:http/http.dart' show BaseRequest, StreamedResponse;
+import 'package:http/io_client.dart' show IOClient;
 
 void main() => runApp(MyApp());
 
@@ -40,6 +47,7 @@ class DetailScreen extends StatelessWidget {
     );
   }
 }
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -52,6 +60,11 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var _refreshController = RefreshController();
   var _threads = [];
+  GoogleSignInAccount _currentAccount;
+
+  GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email', GmailApi.MailGoogleComScope],
+  );
 
   @override
   void didChangeDependencies() async {
@@ -82,6 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         tooltip: 'Increment',
         child: Icon(Icons.add),
+        onPressed: _handleSignIn,
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
@@ -194,4 +208,61 @@ class _MyHomePageState extends State<MyHomePage> {
       snippet: lorem(paragraphs: 1, words: 10),
     );
   }
+
+  Future<void> _handleSignIn() async {
+    try {
+      _googleSignIn.signIn().then(_onSignedIn);
+    } catch (error) {
+      print(error);
+    }
+  }
+
+  void _onSignedIn(GoogleSignInAccount account) async {
+    _currentAccount = account;
+    print(_currentAccount.id);
+
+    final gmail = await _gmailApi();
+    gmail.users.threads.list(_userId).then(_onThreadListFetched);
+  }
+
+  Future<GmailApi> _gmailApi() async {
+    final authHeaders = await _currentAccount.authHeaders;
+    final client = GoogleHttpClient(authHeaders);
+    return GmailApi(client);
+  }
+
+  String get _userId => _currentAccount == null ? '' : _currentAccount.email;
+
+  void _onThreadListFetched(ListThreadsResponse response) async {
+    final threads = response.threads;
+    print('${threads.length} threads fetched');
+    print(threads.map((thread) => thread.id).toList());
+    print(threads.map((thread) => thread.snippet).toList());
+    final gmail = await _gmailApi();
+    gmail.users.threads.get(_userId, threads.first.id).then(_onThreadFetched);
+  }
+
+  void _onThreadFetched(Thread thread) {
+    print(thread);
+    print('${thread.messages.length} messages in thread');
+    final message = thread.messages.first;
+    final base64Url = const Base64Codec.urlSafe();
+
+    var parts = Map.fromIterable(message.payload.parts,
+        key: (part) => part.mimeType,
+        value: (part) => String.fromCharCodes(base64Url.decode(part.body.data)));
+
+    print(parts.length);
+    parts.forEach((mimeType, body) => print('$mimeType: $body'));
+  }
+}
+
+class GoogleHttpClient extends IOClient {
+  final Map<String, String> _headers;
+
+  GoogleHttpClient(this._headers) : super();
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) =>
+      super.send(request..headers.addAll(_headers));
 }
