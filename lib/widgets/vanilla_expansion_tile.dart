@@ -54,5 +54,8 @@ class _VanillaExpansionTileState extends State<VanillaExpansionTile> {
     setState(() {
       _isExpanded = !_isExpanded;
     });
+    if (widget.onExpansionChanged != null) {
+      widget.onExpansionChanged(_isExpanded);
+    }
   }
 }
