@@ -1,12 +1,12 @@
 class ThreadSummary {
-  String from;
+  List<String> senders;
   String avatarUrl;
   String subject;
   String snippet;
   List<String> attachments;
 
   ThreadSummary(
-      {this.from,
+      {this.senders,
       this.avatarUrl,
       this.subject,
       this.snippet,
@@ -15,7 +15,7 @@ class ThreadSummary {
   @override
   String toString() {
     return 'Thread{'
-        'from:$from, '
+        'from:$senders, '
         'subject:$subject, '
         'snippet:$snippet, '
         'avatar:$avatarUrl, '
