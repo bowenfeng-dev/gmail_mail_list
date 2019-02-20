@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:gmail_mail_list/ThreadSummary.dart';
+import 'package:gmail_mail_list/google_http_client.dart';
 import 'package:gmail_mail_list/pages/thread_detail_page.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:random_user/models.dart';
@@ -11,8 +12,6 @@ import 'package:random_user/random_user.dart';
 import 'package:flutter_lorem/flutter_lorem.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart';
-import 'package:http/http.dart' show BaseRequest, StreamedResponse;
-import 'package:http/io_client.dart' show IOClient;
 import 'package:quiver/iterables.dart' show partition;
 
 class MyHomePage extends StatefulWidget {
@@ -26,20 +25,26 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var _refreshController = RefreshController();
-  var _threads = [];
   GoogleSignInAccount _currentAccount;
+
+  final _threadsStreamController = StreamController<List<ThreadSummary>>();
 
   GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email', GmailApi.MailGoogleComScope],
   );
 
   @override
+  void dispose() {
+    _threadsStreamController.close();
+    super.dispose();
+  }
+
+  @override
   void didChangeDependencies() async {
     super.didChangeDependencies();
     RandomUser().getUsers(results: 70).then((users) {
-      setState(() {
-        _threads = partition(users, 5).map(_toThreadSummary).toList();
-      });
+      _threadsStreamController.sink
+          .add(partition(users, 5).map(_toThreadSummary).toList());
     });
   }
 
@@ -49,59 +54,16 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: SmartRefresher(
-        enablePullDown: true,
-        headerBuilder: _refresherHeaderBuilder,
-        controller: _refreshController,
-        onRefresh: _onPullToRefresh,
-        child: ListView.builder(
-          itemBuilder: _mailItemBuilder,
-          itemCount: _threads.length,
-        ),
+      body: StreamBuilder<List<ThreadSummary>>(
+        stream: _threadsStreamController.stream,
+        initialData: [],
+        builder: _buildThreadsList,
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Increment',
         child: Icon(Icons.add),
         onPressed: _handleSignIn,
       ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
-  }
-
-  Widget _mailItemBuilder(BuildContext context, int index) {
-    final thread = _threads[index];
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetailScreen(thread: thread),
-            ));
-      },
-      child: Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _buildAvatar(thread.avatarUrl),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(left: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        thread.senders.join(','),
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Text(thread.subject, overflow: TextOverflow.ellipsis),
-                      Text(thread.snippet, overflow: TextOverflow.ellipsis),
-                      _buildAttachmentButtons(thread.attachments),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          )),
     );
   }
 
@@ -162,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Text(attachment),
         onPressed: () {},
         shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
       ),
     );
   }
@@ -218,19 +180,64 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var parts = Map.fromIterable(message.payload.parts,
         key: (part) => part.mimeType,
-        value: (part) => String.fromCharCodes(base64Url.decode(part.body.data)));
+        value: (part) =>
+            String.fromCharCodes(base64Url.decode(part.body.data)));
 
     print(parts.length);
     parts.forEach((mimeType, body) => print('$mimeType: $body'));
   }
-}
 
-class GoogleHttpClient extends IOClient {
-  final Map<String, String> _headers;
+  Widget _buildThreadsList(
+      BuildContext context, AsyncSnapshot<List<ThreadSummary>> snapshot) {
+    final threads = snapshot.data;
+    return SmartRefresher(
+      enablePullDown: true,
+      headerBuilder: _refresherHeaderBuilder,
+      controller: _refreshController,
+      onRefresh: _onPullToRefresh,
+      child: ListView.builder(
+        itemBuilder: _threadItemBuilderFor(threads),
+        itemCount: threads.length,
+      ),
+    );
+  }
 
-  GoogleHttpClient(this._headers) : super();
-
-  @override
-  Future<StreamedResponse> send(BaseRequest request) =>
-      super.send(request..headers.addAll(_headers));
+  IndexedWidgetBuilder _threadItemBuilderFor(List<ThreadSummary> threads) =>
+      (BuildContext context, int index) {
+        final thread = threads[index];
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailScreen(thread: thread),
+                ));
+          },
+          child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _buildAvatar(thread.avatarUrl),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            thread.senders.join(','),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(thread.subject, overflow: TextOverflow.ellipsis),
+                          Text(thread.snippet, overflow: TextOverflow.ellipsis),
+                          _buildAttachmentButtons(thread.attachments),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+        );
+      };
 }
