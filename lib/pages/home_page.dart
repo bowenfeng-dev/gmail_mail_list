@@ -1,12 +1,5 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gmail_mail_list/blocs/blocs.dart';
-import 'package:gmail_mail_list/google_http_client.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/gmail/v1.dart';
+import 'package:gmail_mail_list/widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({Key key, this.title}) : super(key: key);
@@ -25,29 +18,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final SignInBloc signInBloc = BlocProvider.of<SignInBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
         actions: <Widget>[
-          BlocBuilder(
-            bloc: signInBloc,
-            builder: (_, state) {
-              if (state is SignedIn) {
-                return IconButton(
-                  icon: Icon(Icons.exit_to_app),
-                  onPressed: () => signInBloc.dispatch(DoSignOut()),
-                );
-              }
-              if (state is SignedOut) {
-                return IconButton(
-                  icon: Icon(Icons.account_circle),
-                  onPressed: () => signInBloc.dispatch(DoSignIn()),
-                );
-              }
-              return IconButton(icon: Icon(Icons.account_circle));
-            },
-          ),
+          AccountButton(),
         ],
       ),
       body: Container(),
