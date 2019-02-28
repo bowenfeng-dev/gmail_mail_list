@@ -29,6 +29,9 @@ dependencies:
   googleapis: ^0.52.0+1
   quiver: ^2.0.1
 
+  flutter_bloc: ^0.7.0
+  equatable: ^0.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
