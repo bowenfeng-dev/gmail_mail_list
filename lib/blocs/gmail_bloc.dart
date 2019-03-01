@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:gmail_mail_list/blocs/blocs.dart';
 import 'package:gmail_mail_list/models/models.dart';
 import 'package:googleapis/gmail/v1.dart';
 import 'package:meta/meta.dart';
@@ -11,16 +12,17 @@ abstract class GmailEvent extends Equatable {
 }
 
 class FetchThreads extends GmailEvent {
-  final Future<GmailApi> gmailApi;
-  final String userId;
+  final SignInBloc signInBloc;
+
+  Future<GmailApi> get gmailApi async =>
+      GmailApi(GoogleHttpClient(await signInBloc.account.authHeaders));
 
   Future<UsersThreadsResourceApi> get threadsApi async =>
       (await gmailApi).users.threads;
 
-  FetchThreads({
-    @required this.gmailApi,
-    @required this.userId,
-  }) : super([gmailApi, userId]);
+  String get userId => signInBloc.userId;
+
+  FetchThreads({@required this.signInBloc}) : super([signInBloc]);
 }
 
 abstract class GmailState extends Equatable {

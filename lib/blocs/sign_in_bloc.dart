@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:gmail_mail_list/blocs/blocs.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/gmail/v1.dart';
 
@@ -42,9 +41,6 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
   GoogleSignInAccount account;
 
   String get userId => account?.email ?? '';
-
-  Future<GmailApi> get gmailApi async =>
-      GmailApi(GoogleHttpClient(await account.authHeaders));
 
   @override
   SignInState get initialState => SignedOut();

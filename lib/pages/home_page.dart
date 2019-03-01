@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gmail_mail_list/blocs/blocs.dart';
-import 'package:gmail_mail_list/models/models.dart';
 import 'package:gmail_mail_list/widgets/widgets.dart';
 
 class HomePage extends StatefulWidget {
@@ -41,11 +40,7 @@ class _HomePageState extends State<HomePage> {
               bloc: gmailBloc,
               builder: (BuildContext context, state) {
                 if (state is GmailUninitialized) {
-                  gmailBloc.dispatch(
-                    FetchThreads(
-                        gmailApi: signInBloc.gmailApi,
-                        userId: signInBloc.userId),
-                  );
+                  gmailBloc.dispatch(FetchThreads(signInBloc: signInBloc));
                   return Text('Loading');
                 }
                 if (state is GmailThreadLoaded) {
