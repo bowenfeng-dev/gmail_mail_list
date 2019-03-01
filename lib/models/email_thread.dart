@@ -29,5 +29,5 @@ class EmailThread {
   }
 
   static List<EmailMessage> _extractMessages(Thread thread) =>
-      thread.messages.map((m) => EmailMessage.fromMessage(m)).toList();
+      thread.messages.map((m) => EmailMessage(m)).toList();
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 
 import 'package:http/http.dart' show BaseRequest, StreamedResponse;
 import 'package:http/io_client.dart' show IOClient;
